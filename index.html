@@ -2,8 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" 
-content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>For ChouChou 💛</title>
 
 <style>
@@ -18,7 +17,6 @@ html,body{
     touch-action:manipulation;
 }
 canvas{display:block;}
-
 #intro{
     position:fixed;
     inset:0;
@@ -46,8 +44,8 @@ canvas{display:block;}
 
 <div id="intro">
     <div class="intro-content">
-        <h2>✨ Chạm để bắt đầu năm mới ✨</h2>
-        <p>(Xoay ngang màn hình) 💛</p>
+        <h2>✨ Chạm để bắt đầu ✨</h2>
+        <p>(chị bé xoay ngang màn hình nha) 💛</p>
     </div>
 </div>
 
@@ -60,7 +58,6 @@ const ctx=canvas.getContext("2d");
 const intro=document.getElementById("intro");
 const music=document.getElementById("bgMusic");
 
-/* ===== HD CANVAS ===== */
 function resizeCanvas(){
     const dpr=window.devicePixelRatio||1;
     canvas.width=window.innerWidth*dpr;
@@ -72,7 +69,6 @@ function resizeCanvas(){
 resizeCanvas();
 window.addEventListener("resize",resizeCanvas);
 
-/* ===== START ===== */
 intro.addEventListener("click",()=>{
     music.play().catch(()=>{});
     intro.style.opacity="0";
@@ -82,16 +78,16 @@ intro.addEventListener("click",()=>{
     },1000);
 });
 
-/* ===== VARIABLES ===== */
 let particles=[], rockets=[], fireworks=[], stars=[];
 let phase="heart";
 let phaseStart=Date.now();
-let countdown=3;
+let countdown=4;
 let wordIndex=0;
 let heartBeat=0;
 let nameText="ChouChou";
+let showMorse=false;
 
-/* ===== STARS ===== */
+/* STARS */
 for(let i=0;i<150;i++){
     stars.push({
         x:Math.random()*window.innerWidth,
@@ -101,7 +97,7 @@ for(let i=0;i<150;i++){
     });
 }
 
-/* ===== HEART ===== */
+/* HEART */
 function createHeart(){
     particles=[];
     const cx=window.innerWidth/2;
@@ -115,14 +111,12 @@ function createHeart(){
         particles.push({
             x:cx+x*scale,
             y:cy-y*scale,
-            tx:cx+x*scale,
-            ty:cy-y*scale,
             size:3
         });
     }
 }
 
-/* ===== FIREWORK ===== */
+/* ROCKET */
 function launchRocket(){
     rockets.push({
         x:Math.random()*window.innerWidth,
@@ -131,6 +125,7 @@ function launchRocket(){
         speed:4+Math.random()*2
     });
 }
+
 function explodeFirework(x,y){
     let colors=["#FFD700","#FF4D4D","#4DA6FF","#FF66FF"];
     let color=colors[Math.floor(Math.random()*colors.length)];
@@ -145,7 +140,7 @@ function explodeFirework(x,y){
     }
 }
 
-/* ===== TEXT TO PARTICLES (RÕ MORSE) ===== */
+/* TEXT PARTICLES */
 function textToParticles(text,fontSize=100,fromSides=false){
     const temp=document.createElement("canvas");
     const tctx=temp.getContext("2d");
@@ -153,20 +148,19 @@ function textToParticles(text,fontSize=100,fromSides=false){
     temp.height=window.innerHeight;
 
     tctx.fillStyle="white";
-    tctx.font="bold "+fontSize+"px monospace";
+    tctx.font="bold "+fontSize+"px Arial";
     tctx.textAlign="center";
     tctx.textBaseline="middle";
-    tctx.fillText(text,
-        window.innerWidth/2,
-        window.innerHeight/2
-    );
+    tctx.fillText(text,window.innerWidth/2,window.innerHeight/2);
 
     const data=tctx.getImageData(0,0,temp.width,temp.height).data;
     let newParticles=[];
+
     for(let y=0;y<temp.height;y+=6){
         for(let x=0;x<temp.width;x+=6){
             let i=(y*temp.width+x)*4;
             if(data[i+3]>150){
+
                 let startX=Math.random()*window.innerWidth;
                 let startY=Math.random()*window.innerHeight;
 
@@ -191,15 +185,7 @@ function textToParticles(text,fontSize=100,fromSides=false){
     particles=newParticles;
 }
 
-/* ===== EXPLODE ===== */
-function explodeParticles(){
-    particles.forEach(p=>{
-        p.vx=(Math.random()-0.5)*12;
-        p.vy=(Math.random()-0.5)*12;
-    });
-}
-
-/* ===== DRAW ===== */
+/* DRAW */
 function draw(){
     ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 
@@ -208,7 +194,7 @@ function draw(){
         ctx.fillRect(s.x,s.y,s.size,s.size);
     });
 
-    if(phase==="heart")createHeart();
+    if(phase==="heart") createHeart();
 
     rockets.forEach((r,i)=>{
         r.y-=r.speed;
@@ -238,11 +224,6 @@ function draw(){
             p.x+=(p.tx-p.x)*0.07;
             p.y+=(p.ty-p.y)*0.07;
         }
-        if(p.vx){
-            p.x+=p.vx;
-            p.y+=p.vy;
-        }
-
         ctx.shadowBlur=15;
         ctx.shadowColor="#FFD700";
         ctx.fillStyle="#FFD700";
@@ -252,29 +233,39 @@ function draw(){
         ctx.shadowBlur=0;
     });
 
+    /* MORSE TEXT DRAW */
+    if(showMorse){
+        ctx.fillStyle="#FFD700";
+        ctx.font="bold 36px Courier New";
+        ctx.textAlign="center";
+        ctx.textBaseline="middle";
+
+        let lines=["..",
+                   ".-.. --- ...- .",
+                   "-.-- --- ..-"];
+
+        let lineHeight=45;
+        let startY=window.innerHeight/2-(lines.length*lineHeight)/2;
+
+        lines.forEach((line,i)=>{
+            ctx.fillText(line,window.innerWidth/2,startY+i*lineHeight);
+        });
+    }
+
     timeline();
     requestAnimationFrame(draw);
 }
 
-/* ===== TIMELINE ===== */
-let words=[
-"Mong rằng","những ngày","năm mới",
+/* TIMELINE */
+let words=["Mong rằng","những ngày","năm mới",
 "3 bữa","4 mùa","của chị bé",
-"sẽ","dịu dàng","và","bình an"
-];
+"sẽ","dịu dàng","và","bình an"];
 
 function timeline(){
     let elapsed=Date.now()-phaseStart;
 
     if(phase==="heart" && elapsed>4000){
-        explodeParticles();
-        phase="explode";
-        phaseStart=Date.now();
-    }
-
-    if(phase==="explode" && elapsed>1000){
         phase="countdown";
-        countdown=4;
         textToParticles("4",200);
         phaseStart=Date.now();
     }
@@ -285,10 +276,14 @@ function timeline(){
         if(countdown>0){
             textToParticles(countdown.toString(),200);
         }else{
+            phase="fireworks";
             setInterval(launchRocket,800);
-            phase="words";
-            phaseStart=Date.now();
         }
+    }
+
+    if(phase==="fireworks" && elapsed>2000){
+        phase="words";
+        phaseStart=Date.now();
     }
 
     if(phase==="words" && elapsed>2500){
@@ -297,25 +292,22 @@ function timeline(){
             wordIndex++;
             phaseStart=Date.now();
         }else{
-            phase="full";
-            textToParticles(
-".. / .-.. --- ...- . / -.-- --- ..-",
-Math.min(window.innerWidth/12,70)
-            );
+            phase="morse";
+            particles=[];
+            showMorse=true;
             phaseStart=Date.now();
         }
     }
 
-    if(phase==="full" && elapsed>5500){
+    if(phase==="morse" && elapsed>6000){
+        showMorse=false;
         phase="name";
         textToParticles(nameText,120,true);
         phaseStart=Date.now();
     }
 }
 
-createHeart();
 draw();
 </script>
-
 </body>
 </html>
