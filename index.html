@@ -2,25 +2,23 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" 
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>For ChouChou 💛</title>
 
 <style>
 html,body{
     margin:0;
     padding:0;
+    width:100%;
+    height:100%;
     overflow:hidden;
     background:black;
-    height:100vh;
+    font-family:Arial, sans-serif;
     touch-action:manipulation;
-    -webkit-tap-highlight-color: transparent;
 }
-canvas{
-    display:block;
-    position:fixed;
-    top:0;
-    left:0;
-}
+canvas{display:block;}
+
 #intro{
     position:fixed;
     inset:0;
@@ -28,6 +26,7 @@ canvas{
     display:flex;
     align-items:center;
     justify-content:center;
+    flex-direction:column;
     z-index:999;
     transition:opacity 1s ease;
 }
@@ -47,8 +46,8 @@ canvas{
 
 <div id="intro">
     <div class="intro-content">
-        <h2>✨ Chạm để bắt đầu ✨</h2>
-        <p>For ChouChou 💛</p>
+        <h2>✨ Chạm để bắt đầu năm mới ✨</h2>
+        <p>(Xoay ngang màn hình) 💛</p>
     </div>
 </div>
 
@@ -61,57 +60,56 @@ const ctx=canvas.getContext("2d");
 const intro=document.getElementById("intro");
 const music=document.getElementById("bgMusic");
 
-function resize(){
+/* ===== HD CANVAS ===== */
+function resizeCanvas(){
     const dpr=window.devicePixelRatio||1;
-    canvas.width=innerWidth*dpr;
-    canvas.height=innerHeight*dpr;
-    canvas.style.width=innerWidth+"px";
-    canvas.style.height=innerHeight+"px";
+    canvas.width=window.innerWidth*dpr;
+    canvas.height=window.innerHeight*dpr;
+    canvas.style.width=window.innerWidth+"px";
+    canvas.style.height=window.innerHeight+"px";
     ctx.setTransform(dpr,0,0,dpr,0,0);
 }
-resize();
-addEventListener("resize",resize);
+resizeCanvas();
+window.addEventListener("resize",resizeCanvas);
 
+/* ===== START ===== */
 intro.addEventListener("click",()=>{
     music.play().catch(()=>{});
-    intro.style.opacity=0;
-    setTimeout(()=>intro.remove(),1000);
-    phaseStart=Date.now();
+    intro.style.opacity="0";
+    setTimeout(()=>{
+        intro.style.display="none";
+        phaseStart=Date.now();
+    },1000);
 });
 
-let particles=[],stars=[],rockets=[],fireworks=[];
+/* ===== VARIABLES ===== */
+let particles=[], rockets=[], fireworks=[], stars=[];
 let phase="heart";
 let phaseStart=Date.now();
 let countdown=3;
-let nameText="ChouChou";
-let heartBeat=0;
 let wordIndex=0;
+let heartBeat=0;
+let nameText="ChouChou";
 
-let words=[
-"Mong rằng","những ngày năm mới",
-"3 bữa","4 mùa","của chị bé",
-"sẽ","dịu dàng","và","bình an"
-];
-
-/* ⭐ Stars (giảm còn 120 cho mượt) */
-for(let i=0;i<120;i++){
+/* ===== STARS ===== */
+for(let i=0;i<150;i++){
     stars.push({
-        x:Math.random()*innerWidth,
-        y:Math.random()*innerHeight,
+        x:Math.random()*window.innerWidth,
+        y:Math.random()*window.innerHeight,
         size:Math.random()*2,
         alpha:Math.random()
     });
 }
 
-/* 💛 Heart */
+/* ===== HEART ===== */
 function createHeart(){
     particles=[];
-    const cx=innerWidth/2;
-    const cy=innerHeight/2;
+    const cx=window.innerWidth/2;
+    const cy=window.innerHeight/2;
     heartBeat+=0.05;
-    const scale=12+Math.sin(heartBeat)*1.5;
+    const scale=14+Math.sin(heartBeat)*2;
 
-    for(let t=0;t<Math.PI*2;t+=0.03){
+    for(let t=0;t<Math.PI*2;t+=0.02){
         let x=16*Math.pow(Math.sin(t),3);
         let y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
         particles.push({
@@ -124,93 +122,98 @@ function createHeart(){
     }
 }
 
-/* 🎇 Firework */
+/* ===== FIREWORK ===== */
 function launchRocket(){
     rockets.push({
-        x:Math.random()*innerWidth,
-        y:innerHeight,
-        targetY:Math.random()*innerHeight/2,
+        x:Math.random()*window.innerWidth,
+        y:window.innerHeight,
+        targetY:Math.random()*window.innerHeight/2,
         speed:4+Math.random()*2
     });
 }
 function explodeFirework(x,y){
+    let colors=["#FFD700","#FF4D4D","#4DA6FF","#FF66FF"];
+    let color=colors[Math.floor(Math.random()*colors.length)];
     for(let i=0;i<60;i++){
         fireworks.push({
             x,y,
-            vx:(Math.random()-0.5)*6,
-            vy:(Math.random()-0.5)*6,
-            alpha:1
+            vx:(Math.random()-0.5)*8,
+            vy:(Math.random()-0.5)*8,
+            alpha:1,
+            color
         });
     }
 }
 
-/* ✨ Text */
-function textToParticles(text,size=100,fromSides=false){
+/* ===== TEXT TO PARTICLES (RÕ MORSE) ===== */
+function textToParticles(text,fontSize=100,fromSides=false){
     const temp=document.createElement("canvas");
-    temp.width=innerWidth;
-    temp.height=innerHeight;
     const tctx=temp.getContext("2d");
+    temp.width=window.innerWidth;
+    temp.height=window.innerHeight;
 
     tctx.fillStyle="white";
-    tctx.font="bold "+size+"px Arial";
+    tctx.font="bold "+fontSize+"px monospace";
     tctx.textAlign="center";
     tctx.textBaseline="middle";
+    tctx.fillText(text,
+        window.innerWidth/2,
+        window.innerHeight/2
+    );
 
-    if(text.includes("\n")){
-        let lines=text.split("\n");
-        lines.forEach((l,i)=>{
-            tctx.fillText(l,innerWidth/2,innerHeight/2+i*size);
-        });
-    }else{
-        tctx.fillText(text,innerWidth/2,innerHeight/2);
-    }
-
-    const data=tctx.getImageData(0,0,innerWidth,innerHeight).data;
-    particles=[];
-    for(let y=0;y<innerHeight;y+=8){
-        for(let x=0;x<innerWidth;x+=8){
-            let i=(y*innerWidth+x)*4;
+    const data=tctx.getImageData(0,0,temp.width,temp.height).data;
+    let newParticles=[];
+    for(let y=0;y<temp.height;y+=6){
+        for(let x=0;x<temp.width;x+=6){
+            let i=(y*temp.width+x)*4;
             if(data[i+3]>150){
-                let startX=Math.random()*innerWidth;
-                let startY=Math.random()*innerHeight;
+                let startX=Math.random()*window.innerWidth;
+                let startY=Math.random()*window.innerHeight;
 
                 if(fromSides){
                     let side=Math.floor(Math.random()*4);
                     if(side===0)startX=0;
-                    if(side===1)startX=innerWidth;
+                    if(side===1)startX=window.innerWidth;
                     if(side===2)startY=0;
-                    if(side===3)startY=innerHeight;
+                    if(side===3)startY=window.innerHeight;
                 }
 
-                particles.push({x:startX,y:startY,tx:x,ty:y,size:3});
+                newParticles.push({
+                    x:startX,
+                    y:startY,
+                    tx:x,
+                    ty:y,
+                    size:3.5
+                });
             }
         }
     }
+    particles=newParticles;
 }
 
-/* 💥 Explode */
+/* ===== EXPLODE ===== */
 function explodeParticles(){
     particles.forEach(p=>{
-        p.vx=(Math.random()-0.5)*10;
-        p.vy=(Math.random()-0.5)*10;
+        p.vx=(Math.random()-0.5)*12;
+        p.vy=(Math.random()-0.5)*12;
     });
 }
 
-/* 🎬 Draw */
+/* ===== DRAW ===== */
 function draw(){
-    ctx.clearRect(0,0,innerWidth,innerHeight);
+    ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 
     stars.forEach(s=>{
         ctx.fillStyle="rgba(255,255,255,"+s.alpha+")";
         ctx.fillRect(s.x,s.y,s.size,s.size);
     });
 
-    if(phase==="heart") createHeart();
+    if(phase==="heart")createHeart();
 
     rockets.forEach((r,i)=>{
         r.y-=r.speed;
         ctx.fillStyle="#FFD700";
-        ctx.fillRect(r.x,r.y,3,8);
+        ctx.fillRect(r.x,r.y,3,10);
         if(r.y<=r.targetY){
             explodeFirework(r.x,r.y);
             rockets.splice(i,1);
@@ -222,7 +225,7 @@ function draw(){
         f.y+=f.vy;
         f.alpha-=0.02;
         ctx.globalAlpha=f.alpha;
-        ctx.fillStyle="#FFD700";
+        ctx.fillStyle=f.color;
         ctx.beginPath();
         ctx.arc(f.x,f.y,2,0,Math.PI*2);
         ctx.fill();
@@ -239,21 +242,31 @@ function draw(){
             p.x+=p.vx;
             p.y+=p.vy;
         }
+
+        ctx.shadowBlur=15;
+        ctx.shadowColor="#FFD700";
         ctx.fillStyle="#FFD700";
         ctx.beginPath();
         ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
         ctx.fill();
+        ctx.shadowBlur=0;
     });
 
     timeline();
     requestAnimationFrame(draw);
 }
 
-/* ⏳ Timeline */
+/* ===== TIMELINE ===== */
+let words=[
+"Mong rằng","những ngày","năm mới",
+"3 bữa","4 mùa","của chị bé",
+"sẽ","dịu dàng","và","bình an"
+];
+
 function timeline(){
     let elapsed=Date.now()-phaseStart;
 
-    if(phase==="heart" && elapsed>3500){
+    if(phase==="heart" && elapsed>4000){
         explodeParticles();
         phase="explode";
         phaseStart=Date.now();
@@ -261,19 +274,18 @@ function timeline(){
 
     if(phase==="explode" && elapsed>1000){
         phase="countdown";
-        countdown=3;
-        textToParticles("3",180);
+        countdown=4;
+        textToParticles("4",200);
         phaseStart=Date.now();
     }
 
     if(phase==="countdown" && elapsed>=1000){
         countdown--;
         phaseStart=Date.now();
-
         if(countdown>0){
-            textToParticles(countdown.toString(),180);
+            textToParticles(countdown.toString(),200);
         }else{
-            setInterval(launchRocket,900);
+            setInterval(launchRocket,800);
             phase="words";
             phaseStart=Date.now();
         }
@@ -281,20 +293,20 @@ function timeline(){
 
     if(phase==="words" && elapsed>2500){
         if(wordIndex<words.length){
-            textToParticles(words[wordIndex],70);
+            textToParticles(words[wordIndex],90);
             wordIndex++;
             phaseStart=Date.now();
         }else{
             phase="full";
             textToParticles(
-"Mong rằng những ngày năm mới 3 bữa\n4 mùa của chị đều dịu dàng và bình an",
-45
+".. / .-.. --- ...- . / -.-- --- ..-",
+Math.min(window.innerWidth/12,70)
             );
             phaseStart=Date.now();
         }
     }
 
-    if(phase==="full" && elapsed>5000){
+    if(phase==="full" && elapsed>5500){
         phase="name";
         textToParticles(nameText,120,true);
         phaseStart=Date.now();
@@ -304,5 +316,6 @@ function timeline(){
 createHeart();
 draw();
 </script>
+
 </body>
 </html>
