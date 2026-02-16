@@ -2,50 +2,40 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>For ChouChou</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>For ChouChou 💛</title>
 
 <style>
-body{
+html,body{
     margin:0;
+    padding:0;
     overflow:hidden;
     background:black;
-    font-family:Arial, sans-serif;
+    height:100vh;
+    touch-action:manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
-canvas{display:block;}
-
-/* ===== INTRO SCREEN ===== */
-#intro{
+canvas{
+    display:block;
     position:fixed;
     top:0;
     left:0;
-    width:100%;
-    height:100%;
+}
+#intro{
+    position:fixed;
+    inset:0;
     background:radial-gradient(circle at center,#000020,#000);
     display:flex;
     align-items:center;
     justify-content:center;
-    flex-direction:column;
     z-index:999;
     transition:opacity 1s ease;
 }
-
 .intro-content{
     text-align:center;
     color:#FFD700;
     animation: glow 2s infinite alternate;
 }
-
-.intro-content h1{
-    font-size:24px;
-    margin-bottom:10px;
-}
-
-.intro-content p{
-    font-size:18px;
-    opacity:0.8;
-}
-
 @keyframes glow{
     from{text-shadow:0 0 10px #FFD700;}
     to{text-shadow:0 0 25px #FFD700;}
@@ -55,10 +45,9 @@ canvas{display:block;}
 
 <body>
 
-<!-- INTRO -->
 <div id="intro">
     <div class="intro-content">
-        <h1>✨ Chạm để bắt đầu năm mới ✨</h1>
+        <h2>✨ Chạm để bắt đầu ✨</h2>
         <p>For ChouChou 💛</p>
     </div>
 </div>
@@ -67,61 +56,62 @@ canvas{display:block;}
 <audio id="bgMusic" src="music.mp3" preload="auto"></audio>
 
 <script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const music = document.getElementById("bgMusic");
-const intro = document.getElementById("intro");
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+const intro=document.getElementById("intro");
+const music=document.getElementById("bgMusic");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resize(){
+    const dpr=window.devicePixelRatio||1;
+    canvas.width=innerWidth*dpr;
+    canvas.height=innerHeight*dpr;
+    canvas.style.width=innerWidth+"px";
+    canvas.style.height=innerHeight+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+resize();
+addEventListener("resize",resize);
 
-window.addEventListener("resize",()=>{
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-});
-
-/* ===== START AFTER TAP ===== */
-intro.addEventListener("click", ()=>{
+intro.addEventListener("click",()=>{
     music.play().catch(()=>{});
-    intro.style.opacity="0";
-    setTimeout(()=>{
-        intro.style.display="none";
-        phaseStart = Date.now();
-    },1000);
+    intro.style.opacity=0;
+    setTimeout(()=>intro.remove(),1000);
+    phaseStart=Date.now();
 });
 
-/* ===== VARIABLES ===== */
-let particles=[];
-let rockets=[];
-let fireworks=[];
-let stars=[];
+let particles=[],stars=[],rockets=[],fireworks=[];
 let phase="heart";
 let phaseStart=Date.now();
 let countdown=3;
 let nameText="ChouChou";
 let heartBeat=0;
-let rocketInterval=null;
+let wordIndex=0;
 
-/* ===== STAR BACKGROUND ===== */
-for(let i=0;i<300;i++){
+let words=[
+"Mong rằng","những ngày năm mới",
+"3 bữa","4 mùa","của chị bé",
+"sẽ","dịu dàng","và","bình an"
+];
+
+/* ⭐ Stars (giảm còn 120 cho mượt) */
+for(let i=0;i<120;i++){
     stars.push({
-        x:Math.random()*canvas.width,
-        y:Math.random()*canvas.height,
+        x:Math.random()*innerWidth,
+        y:Math.random()*innerHeight,
         size:Math.random()*2,
         alpha:Math.random()
     });
 }
 
-/* ===== HEART ===== */
+/* 💛 Heart */
 function createHeart(){
     particles=[];
-    const cx=canvas.width/2;
-    const cy=canvas.height/2;
+    const cx=innerWidth/2;
+    const cy=innerHeight/2;
+    heartBeat+=0.05;
+    const scale=12+Math.sin(heartBeat)*1.5;
 
-    heartBeat += 0.05;
-    const scale = 14 + Math.sin(heartBeat)*2;
-
-    for(let t=0;t<Math.PI*2;t+=0.015){
+    for(let t=0;t<Math.PI*2;t+=0.03){
         let x=16*Math.pow(Math.sin(t),3);
         let y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
         particles.push({
@@ -129,115 +119,98 @@ function createHeart(){
             y:cy-y*scale,
             tx:cx+x*scale,
             ty:cy-y*scale,
-            size:4
+            size:3
         });
     }
 }
 
-/* ===== FIREWORK ===== */
+/* 🎇 Firework */
 function launchRocket(){
     rockets.push({
-        x:Math.random()*canvas.width,
-        y:canvas.height,
-        targetY:Math.random()*canvas.height/2,
+        x:Math.random()*innerWidth,
+        y:innerHeight,
+        targetY:Math.random()*innerHeight/2,
         speed:4+Math.random()*2
     });
 }
-
 function explodeFirework(x,y){
-    let colors=["#FFD700","#FF4D4D","#4DA6FF","#FF66FF"];
-    let color=colors[Math.floor(Math.random()*colors.length)];
-
-    for(let i=0;i<100;i++){
+    for(let i=0;i<60;i++){
         fireworks.push({
-            x:x,
-            y:y,
-            vx:(Math.random()-0.5)*8,
-            vy:(Math.random()-0.5)*8,
-            alpha:1,
-            color:color
+            x,y,
+            vx:(Math.random()-0.5)*6,
+            vy:(Math.random()-0.5)*6,
+            alpha:1
         });
     }
 }
 
-/* ===== TEXT TO PARTICLES ===== */
-function textToParticles(text,fontSize=100,fromSides=false){
+/* ✨ Text */
+function textToParticles(text,size=100,fromSides=false){
     const temp=document.createElement("canvas");
+    temp.width=innerWidth;
+    temp.height=innerHeight;
     const tctx=temp.getContext("2d");
-    temp.width=canvas.width;
-    temp.height=canvas.height;
 
     tctx.fillStyle="white";
-    tctx.font="bold "+fontSize+"px Arial";
+    tctx.font="bold "+size+"px Arial";
     tctx.textAlign="center";
     tctx.textBaseline="middle";
 
     if(text.includes("\n")){
         let lines=text.split("\n");
-        lines.forEach((line,i)=>{
-            tctx.fillText(line,canvas.width/2,canvas.height/2+i*fontSize);
+        lines.forEach((l,i)=>{
+            tctx.fillText(l,innerWidth/2,innerHeight/2+i*size);
         });
     }else{
-        tctx.fillText(text,canvas.width/2,canvas.height/2);
+        tctx.fillText(text,innerWidth/2,innerHeight/2);
     }
 
-    const data=tctx.getImageData(0,0,canvas.width,canvas.height).data;
-    let newParticles=[];
-
-    for(let y=0;y<canvas.height;y+=6){
-        for(let x=0;x<canvas.width;x+=6){
-            let i=(y*canvas.width+x)*4;
+    const data=tctx.getImageData(0,0,innerWidth,innerHeight).data;
+    particles=[];
+    for(let y=0;y<innerHeight;y+=8){
+        for(let x=0;x<innerWidth;x+=8){
+            let i=(y*innerWidth+x)*4;
             if(data[i+3]>150){
-
-                let startX=Math.random()*canvas.width;
-                let startY=Math.random()*canvas.height;
+                let startX=Math.random()*innerWidth;
+                let startY=Math.random()*innerHeight;
 
                 if(fromSides){
                     let side=Math.floor(Math.random()*4);
-                    if(side===0){ startX=0; }
-                    if(side===1){ startX=canvas.width; }
-                    if(side===2){ startY=0; }
-                    if(side===3){ startY=canvas.height; }
+                    if(side===0)startX=0;
+                    if(side===1)startX=innerWidth;
+                    if(side===2)startY=0;
+                    if(side===3)startY=innerHeight;
                 }
 
-                newParticles.push({
-                    x:startX,
-                    y:startY,
-                    tx:x,
-                    ty:y,
-                    size:3
-                });
+                particles.push({x:startX,y:startY,tx:x,ty:y,size:3});
             }
         }
     }
-    particles=newParticles;
 }
 
-/* ===== EXPLODE ===== */
+/* 💥 Explode */
 function explodeParticles(){
     particles.forEach(p=>{
-        p.vx=(Math.random()-0.5)*12;
-        p.vy=(Math.random()-0.5)*12;
+        p.vx=(Math.random()-0.5)*10;
+        p.vy=(Math.random()-0.5)*10;
     });
 }
 
-/* ===== DRAW LOOP ===== */
+/* 🎬 Draw */
 function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0,0,innerWidth,innerHeight);
 
     stars.forEach(s=>{
         ctx.fillStyle="rgba(255,255,255,"+s.alpha+")";
         ctx.fillRect(s.x,s.y,s.size,s.size);
     });
 
-    if(phase==="heart"){
-        createHeart();
-    }
+    if(phase==="heart") createHeart();
 
     rockets.forEach((r,i)=>{
         r.y-=r.speed;
         ctx.fillStyle="#FFD700";
-        ctx.fillRect(r.x,r.y,3,10);
+        ctx.fillRect(r.x,r.y,3,8);
         if(r.y<=r.targetY){
             explodeFirework(r.x,r.y);
             rockets.splice(i,1);
@@ -249,7 +222,7 @@ function draw(){
         f.y+=f.vy;
         f.alpha-=0.02;
         ctx.globalAlpha=f.alpha;
-        ctx.fillStyle=f.color;
+        ctx.fillStyle="#FFD700";
         ctx.beginPath();
         ctx.arc(f.x,f.y,2,0,Math.PI*2);
         ctx.fill();
@@ -276,17 +249,11 @@ function draw(){
     requestAnimationFrame(draw);
 }
 
-/* ===== TIMELINE ===== */
-let words=[
-"Mong rằng","những ngày năm mới",
-"3 bữa","4 mùa","của chị bé","sẽ","dịu dàng","và","bình an"
-];
-let wordIndex=0;
-
+/* ⏳ Timeline */
 function timeline(){
     let elapsed=Date.now()-phaseStart;
 
-    if(phase==="heart" && elapsed>4000){
+    if(phase==="heart" && elapsed>3500){
         explodeParticles();
         phase="explode";
         phaseStart=Date.now();
@@ -294,42 +261,42 @@ function timeline(){
 
     if(phase==="explode" && elapsed>1000){
         phase="countdown";
-        countdown=4;
-        textToParticles("3",200);
+        countdown=3;
+        textToParticles("3",180);
         phaseStart=Date.now();
     }
 
-    if(phase==="countdown" && elapsed>=1500){
+    if(phase==="countdown" && elapsed>=1000){
         countdown--;
         phaseStart=Date.now();
 
         if(countdown>0){
-            textToParticles(countdown.toString(),200);
+            textToParticles(countdown.toString(),180);
         }else{
-            rocketInterval=setInterval(launchRocket,800);
+            setInterval(launchRocket,900);
             phase="words";
             phaseStart=Date.now();
         }
     }
 
-    if(phase==="words" && elapsed>3000){
+    if(phase==="words" && elapsed>2500){
         if(wordIndex<words.length){
-            textToParticles(words[wordIndex],90);
+            textToParticles(words[wordIndex],70);
             wordIndex++;
             phaseStart=Date.now();
         }else{
             phase="full";
             textToParticles(
 "Mong rằng những ngày năm mới 3 bữa\n4 mùa của chị đều dịu dàng và bình an",
-60
+45
             );
             phaseStart=Date.now();
         }
     }
 
-    if(phase==="full" && elapsed>5500){
+    if(phase==="full" && elapsed>5000){
         phase="name";
-        textToParticles(nameText,130,true);
+        textToParticles(nameText,120,true);
         phaseStart=Date.now();
     }
 }
@@ -337,6 +304,5 @@ function timeline(){
 createHeart();
 draw();
 </script>
-
 </body>
 </html>
